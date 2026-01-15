@@ -4,9 +4,6 @@ import sys
 import faulthandler
 from datasets import Dataset
 
-# Transformers importlarını geciktiriyoruz (eğer importta patlıyorsa yakalayalım diye)
-# from transformers import T5Tokenizer, T5ForConditionalGeneration, TrainingArguments, Trainer
-
 faulthandler.enable()
 
 def log(msg):
@@ -43,7 +40,6 @@ try:
     from transformers import T5Tokenizer, T5ForConditionalGeneration, TrainingArguments, Trainer
     log("6.1) transformers import OK")
 
-    # Not: İnternet/HF indirme sorunu varsa burada patlar ve hata yazdırılır.
     tokenizer = T5Tokenizer.from_pretrained("t5-small")
     log("6.2) tokenizer OK")
 
@@ -53,7 +49,6 @@ try:
 except Exception as e:
     log("!! Model/tokenizer yüklemede hata yakaladım:")
     log(repr(e))
-    # stacktrace’i zorla bas
     import traceback
     traceback.print_exc()
     sys.exit(1)
