@@ -8,7 +8,6 @@ MODEL_DIR = os.path.join(BASE_DIR, "distilgpt2_trained")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR, use_fast=True)
 model = AutoModelForCausalLM.from_pretrained(MODEL_DIR)
 
-# CPU için
 model.eval()
 
 def generate(symptom: str):
