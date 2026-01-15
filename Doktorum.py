@@ -10,9 +10,6 @@ from datetime import datetime
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-# =========================
-# LOCAL MODEL AYARLARI
-# =========================
 MODEL_DIR = r"C:/Users/yigit/OneDrive/Desktop/doktorum_deneme-main/Doktorum/distilgpt2_trained"
 
 
@@ -24,10 +21,8 @@ class LocalSymptomModel:
         if not os.path.isdir(model_dir):
             raise FileNotFoundError(f"Model klasörü bulunamadı: {model_dir}")
 
-        # Tokenizer + Model
         self.tokenizer = AutoTokenizer.from_pretrained(model_dir)
 
-        # GPT-2 türevlerinde pad_token yoksa generate bazen saçmalar/patlar
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
@@ -41,8 +36,6 @@ class LocalSymptomModel:
         if not symptom_text:
             return "Semptom girmedin. Ben de kristal küre taşımıyorum."
 
-        # Burada modeli “istediğin gibi konuşturma” kısmı var:
-        # Prompt formatını sabit ve disiplinli tutarsan saçmalama azalır.
         prompt = (
             "Sen bir sağlık asistanısın.\n"
             "Türkçe, kısa, net ve maddeli cevap ver.\n"
@@ -67,16 +60,11 @@ class LocalSymptomModel:
 
         text = self.tokenizer.decode(out[0], skip_special_tokens=True)
 
-        # Promptu kesip sadece cevap kısmını göster
         if "Cevap:" in text:
             text = text.split("Cevap:", 1)[-1].strip()
 
         return text.strip()[:1200]
 
-
-# =========================
-# VERİTABANI
-# =========================
 conn = sqlite3.connect("health_app.db")
 cursor = conn.cursor()
 
@@ -96,10 +84,6 @@ conn.commit()
 
 current_user = None
 
-
-# =========================
-# AUTH
-# =========================
 def register_user(username, password, age, gender, height, weight):
     try:
         hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
@@ -118,17 +102,12 @@ def login_user(username, password):
     result = cursor.fetchone()
     if result:
         stored_password = result[0]
-        # sqlite bazen bytes yerine memoryview döndürebilir
         if isinstance(stored_password, memoryview):
             stored_password = stored_password.tobytes()
         if bcrypt.checkpw(password.encode("utf-8"), stored_password):
             return True
     return False
 
-
-# =========================
-# RULE-BASED
-# =========================
 def rule_based_response(symptoms: str):
     rules = {
         "öksürük": "Öksürük için bol sıvı tüketin. 1 haftadan uzun sürerse veya nefes darlığı eşlik ederse sağlık kuruluşuna başvurun.",
@@ -140,15 +119,10 @@ def rule_based_response(symptoms: str):
             return response
     return None
 
-
-# =========================
-# UI
-# =========================
 root = tk.Tk()
 root.title("Sağlık Uygulaması")
 root.geometry("420x330")
 
-# Local modeli uygulama açılırken bir kere yükle
 try:
     local_model = LocalSymptomModel(MODEL_DIR)
 except Exception as e:
@@ -181,7 +155,6 @@ def analyze_symptoms():
     symptom_entry = tk.Entry(root, width=40)
     symptom_entry.pack(pady=5)
 
-    # sonuçları pencerede de gösterelim (messagebox yerine daha düzgün)
     result_text = tk.Text(root, width=50, height=8, wrap="word")
     result_text.pack(padx=10, pady=10)
 
@@ -195,7 +168,6 @@ def analyze_symptoms():
         result_text.delete("1.0", tk.END)
         result_text.insert(tk.END, "Analiz ediliyor... (CPU ise biraz sürebilir)\n")
 
-        # önce kural tabanı
         rb = rule_based_response(symptoms)
         if rb:
             result_text.delete("1.0", tk.END)
@@ -203,14 +175,12 @@ def analyze_symptoms():
             analyze_btn.config(state="normal")
             return
 
-        # local model yoksa patlatmadan söyle
         if local_model is None:
             result_text.delete("1.0", tk.END)
             result_text.insert(tk.END, "Local model yüklenemedi. MODEL_DIR yolunu ve bağımlılıkları kontrol et.")
             analyze_btn.config(state="normal")
             return
 
-        # UI donmasın diye thread
         def worker():
             try:
                 response = local_model.generate(symptoms)
