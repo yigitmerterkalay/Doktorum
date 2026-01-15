@@ -1,27 +1,23 @@
-# Model / checkpoint
 distilgpt2_trained/
 **/checkpoint-*/
 *.safetensors
 *.pt
 *.bin
 
-# HuggingFace dataset cache / arrow
 split_dataset/
 *.arrow
 dataset_dict.json
 dataset_info.json
 state.json
 
-# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Logs
 logs/
 *.log
 
-# Local DB / secrets
 health_app.db
 .env
+
